@@ -1,0 +1,76 @@
+---
+- name: Setup systemd-timesyncd
+  when: debian_ntp_servers | length > 0
+  tags:
+    - ntp
+  block:
+    - name: Stop and disable on boot = chrony
+      ansible.builtin.systemd:
+        name: chrony.service
+        state: stopped
+        enabled: false
+      when: "'chrony' in ansible_facts.packages"
+
+    - name: Stop and disable on boot = ntp
+      ansible.builtin.systemd:
+        name: ntp.service
+        state: stopped
+        enabled: false
+      when: "'ntp' in ansible_facts.packages"
+
+    - name: Stop and disable on boot = ntpsec
+      ansible.builtin.systemd:
+        name: ntpsec.service
+        state: stopped
+        enabled: false
+      when: "'ntpsec' in ansible_facts.packages"
+
+    - name: Stop and disable on boot = openntpd
+      ansible.builtin.systemd:
+        name: openntpd.service
+        state: stopped
+        enabled: false
+      when: "'openntpd' in ansible_facts.packages"
+
+    - name: Install systemd-timesyncd
+      ansible.builtin.apt:
+        name: systemd-timesyncd
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create directory for timesyncd drop-ins
+      ansible.builtin.file:
+        path: /etc/systemd/timesyncd.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Setup NTP servers as timesyncd drop-in config file
+      ansible.builtin.template:
+        src: timesyncd.conf.j2
+        dest: /etc/systemd/timesyncd.conf.d/ntp.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart systemd-timesyncd
+
+    - name: Enable time synchronization
+      ansible.builtin.command:
+        cmd: timedatectl set-ntp true
+      changed_when: false
+
+    - name: Ensure systemd-timesyncd is started and enabled at boot
+      ansible.builtin.systemd:
+        name: systemd-timesyncd.service
+        state: started
+        enabled: true
+      ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Set up timezone
+  community.general.timezone:
+    name: "{{ debian_timezone }}"
+  when: debian_timezone | length > 0
+  tags:
+    - timezone

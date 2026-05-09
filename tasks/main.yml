@@ -1,0 +1,60 @@
+---
+# tasks file for debian
+- name: Configure APT
+  ansible.builtin.include_tasks:
+    file: apt.yml
+    apply:
+      tags:
+        - apt
+  tags:
+    - apt
+    - sources
+    - unattended_upgrades
+
+- name: Install optional packages
+  ansible.builtin.apt:
+    name: "{{ debian_packages }}"
+    update_cache: true
+    cache_valid_time: 3600
+  when: debian_packages | length > 0
+  tags:
+    - packages
+
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: apt
+  tags:
+    - always
+
+- name: Configure system
+  ansible.builtin.include_tasks:
+    file: system.yml
+    apply:
+      tags:
+        - system
+  tags:
+    - system
+    - hostname
+    - dns
+    - locales
+
+- name: Configure NTP and timezone
+  ansible.builtin.include_tasks:
+    file: time.yml
+    apply:
+      tags:
+        - time
+  tags:
+    - time
+    - ntp
+    - timezone
+
+- name: Configure journald persistent logs
+  when: debian_setup_journald | bool
+  ansible.builtin.include_tasks:
+    file: logs.yml
+    apply:
+      tags:
+        - logs
+  tags:
+    - logs

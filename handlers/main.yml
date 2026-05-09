@@ -1,0 +1,19 @@
+---
+# handlers file for debian
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Restart systemd-timesyncd
+  ansible.builtin.service:
+    name: systemd-timesyncd.service
+    state: restarted
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Reload journald
+  ansible.builtin.shell: |
+    set -e
+
+    killall -USR1 systemd-journald
+    journalctl --flush
+  changed_when: true

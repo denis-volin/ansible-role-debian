@@ -1,0 +1,58 @@
+---
+- name: Setup Debian repository for APT
+  ansible.builtin.deb822_repository:
+    name: "{{ item.name }}"
+    types:
+      - deb
+      - deb-src
+    uris: "{{ item.uris }}"
+    suites: "{{ item.suites }}"
+    components: main
+    signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
+  loop: "{{ debian_apt_sources }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: Update apt cache
+  when:
+    - debian_apt_sources | length > 0
+  tags:
+    - sources
+
+- name: Manage apt sources list
+  ansible.builtin.template:
+    src: sources.list.j2
+    dest: /etc/apt/sources.list
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Update apt cache
+  when:
+    - debian_apt_sources | length > 0
+  tags:
+    - sources
+
+- name: Force update apt cache if needed
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - sources
+
+- name: Install unattended-upgrades package
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    update_cache: true
+    cache_valid_time: 3600
+  when: debian_setup_upgrades | bool
+  tags:
+    - unattended_upgrades
+
+- name: Setup unattended upgrades
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections
+    dpkg-reconfigure -f noninteractive unattended-upgrades
+  args:
+    executable: /bin/bash
+    creates: /etc/apt/apt.conf.d/20auto-upgrades
+  when: debian_setup_upgrades | bool
+  tags:
+    - unattended_upgrades

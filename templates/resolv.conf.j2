@@ -1,0 +1,8 @@
+{{ ansible_managed | comment }}
+
+{% for server in debian_dns_servers %}
+nameserver {{ server }}
+{% endfor %}
+{% if debian_search_domain | length > 0 %}
+search {{ debian_search_domain }}
+{% endif %}

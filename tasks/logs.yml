@@ -1,0 +1,23 @@
+---
+- name: Install killall command to reload journald.
+  ansible.builtin.apt:
+    name: psmisc
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create directory for journald drop-ins
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Explicitly enable persistent logging in journald
+  ansible.builtin.template:
+    src: journald.conf.j2
+    dest: /etc/systemd/journald.conf.d/enable-persistence.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload journald

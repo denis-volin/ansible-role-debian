@@ -1,0 +1,51 @@
+---
+- name: Set hostname with systemd
+  ansible.builtin.hostname:
+    use: systemd
+    name: "{{ debian_hostname }}"
+  when: debian_hostname | length > 0
+  tags:
+    - hostname
+
+- name: Manage /etc/hosts
+  ansible.builtin.template:
+    src: hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: "0644"
+  when:
+    - debian_host | length > 0
+    - debian_hostname | length > 0
+    - debian_hostname_short | length > 0
+  tags:
+    - hostname
+
+- name: Stop and disable systemd-resolvd
+  ansible.builtin.systemd:
+    name: systemd-resolved.service
+    state: stopped
+    enabled: false
+  when:
+    - "'systemd-resolved' in ansible_facts.packages"
+    - debian_dns_servers | length > 0
+  tags:
+    - dns
+
+- name: Set up /etc/resolv.conf file
+  ansible.builtin.template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: debian_dns_servers | length > 0
+  tags:
+    - dns
+
+- name: Generate locales
+  community.general.locale_gen:
+    name: "{{ debian_locales }}"
+  when: debian_locales | length > 0
+  tags:
+    - locales

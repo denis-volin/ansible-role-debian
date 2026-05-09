@@ -1,0 +1,6 @@
+{{ ansible_managed | comment }}
+
+# See:
+{% for source in debian_apt_sources %}
+#  /etc/apt/sources.list.d/{{ source.name }}
+{% endfor %}

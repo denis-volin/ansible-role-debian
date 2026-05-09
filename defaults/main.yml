@@ -1,0 +1,76 @@
+---
+# defaults file for debian
+
+# FQDN of Debian mirror to use.
+debian_apt_mirror: deb.debian.org
+
+# Debian release codename used in APT suite names.
+# By default this follows the target host facts.
+# Comes handy if you want to `apt full-upgrade` your system.
+# Examples: `bookworm`, `trixie`.
+debian_release: "{{ ansible_facts['distribution_release'] }}"
+
+# APT repositories to manage with deb822_repository module.
+# Each item is written as a separate source under `/etc/apt/sources.list.d/`.
+# Set to [] to skip repository management.
+debian_apt_sources:
+  - name: debian
+    uris: http://{{ debian_apt_mirror }}/debian
+    suites:
+      - "{{ debian_release }}"
+      - "{{ debian_release }}-updates"
+      - "{{ debian_release }}-backports"
+  - name: debian-security
+    uris: http://{{ debian_apt_mirror }}/debian-security
+    suites: "{{ debian_release }}-security"
+
+# Set to false to skip setup of unattended upgrades.
+debian_setup_upgrades: true
+
+# Optional extra packages to install after APT is configured.
+debian_packages: []
+
+# IP address to place on the managed host's primary /etc/hosts line.
+debian_host: "{{ ansible_host }}"
+
+# FQDN to set with systemd-hostnamed and write to /etc/hosts.
+# Set to "" to skip hostname management.
+debian_hostname: "{{ inventory_hostname }}"
+
+# Short hostname alias to write next to debian_hostname in /etc/hosts.
+debian_hostname_short: "{{ inventory_hostname_short }}"
+
+# Additional raw /etc/hosts entries. Each list item is rendered as its own line.
+debian_hosts_extra: []
+
+# DNS resolver addresses to write to /etc/resolv.conf.
+# When this list is not empty, systemd-resolved is stopped and disabled if it is installed.
+# Set to [] to skip resolv management.
+debian_dns_servers:
+  - 1.1.1.1
+  - 1.0.0.1
+
+# DNS search domain written to /etc/resolv.conf. Set to "" to omit the search line.
+# The default derives the parent domain from debian_hostname.
+debian_search_domain: "{{ debian_hostname.split('.').1 }}.{{ debian_hostname.split('.').2 }}"
+
+# Locales to generate on the host.
+# Set to [] to skip locales management.
+debian_locales:
+  - en_US.UTF-8
+
+# NTP servers configured for systemd-timesyncd.
+# Set to [] to skip installing and configuring systemd-timesyncd.
+debian_ntp_servers:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+  - 2.pool.ntp.org
+  - 3.pool.ntp.org
+
+# Timezone in `tz database` format to set.
+# Examples: "Etc/UTC", "Europe/Warsaw".
+# Set to "" to skip timezone management.
+debian_timezone: ""
+
+# Set to false to skip setup of persistent journald logs.
+debian_setup_journald: true
