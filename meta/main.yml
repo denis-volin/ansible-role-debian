@@ -2,7 +2,6 @@ galaxy_info:
   role_name: debian
   description: Normalize and prepare a Debian server
   author: denis-volin
-  namespace: denis_volin
   license: MIT
 
   min_ansible_version: "2.20.0"
