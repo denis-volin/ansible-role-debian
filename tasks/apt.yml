@@ -1,40 +1,40 @@
 ---
-- name: Setup Debian repository for APT
-  ansible.builtin.deb822_repository:
-    name: "{{ item.name }}"
-    types:
-      - deb
-      - deb-src
-    uris: "{{ item.uris }}"
-    suites: "{{ item.suites }}"
-    components: main
-    signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
-  loop: "{{ debian_apt_sources }}"
-  loop_control:
-    label: "{{ item.name }}"
-  notify: Update apt cache
-  when:
-    - debian_apt_sources | length > 0
-  tags:
-    - sources
+- name: Setup package repositories
+  when: debian_apt_sources | length > 0
+  tags: sources
+  block:
+    - name: Install deb822 repository module dependency
+      ansible.builtin.apt:
+        name: python3-debian
+        update_cache: true
+        cache_valid_time: 3600
 
-- name: Manage apt sources list
-  ansible.builtin.template:
-    src: sources.list.j2
-    dest: /etc/apt/sources.list
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Update apt cache
-  when:
-    - debian_apt_sources | length > 0
-  tags:
-    - sources
+    - name: Setup Debian repository for APT
+      ansible.builtin.deb822_repository:
+        name: "{{ item.name }}"
+        types:
+          - deb
+          - deb-src
+        uris: "{{ item.uris }}"
+        suites: "{{ item.suites }}"
+        components: main
+        signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
+      loop: "{{ debian_apt_sources }}"
+      loop_control:
+        label: "{{ item.name }}"
+      notify: Update apt cache
 
-- name: Force update apt cache if needed
-  ansible.builtin.meta: flush_handlers
-  tags:
-    - sources
+    - name: Manage apt sources list
+      ansible.builtin.template:
+        src: sources.list.j2
+        dest: /etc/apt/sources.list
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Update apt cache
+
+    - name: Force update apt cache if needed
+      ansible.builtin.meta: flush_handlers
 
 - name: Install unattended-upgrades package
   ansible.builtin.apt:

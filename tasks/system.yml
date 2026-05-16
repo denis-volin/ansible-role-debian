@@ -43,6 +43,15 @@
   tags:
     - dns
 
+- name: Install locales package
+  ansible.builtin.apt:
+    name: locales
+    update_cache: true
+    cache_valid_time: 3600
+  when: debian_locales | length > 0
+  tags:
+    - locales
+
 - name: Generate locales
   community.general.locale_gen:
     name: "{{ debian_locales }}"
