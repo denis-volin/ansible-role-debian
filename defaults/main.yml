@@ -2,27 +2,7 @@
 # defaults file for debian
 
 # FQDN of Debian mirror to use.
-debian_apt_mirror: deb.debian.org
-
-# Debian release codename used in APT suite names.
-# By default this follows the target host facts.
-# Comes handy if you want to `apt full-upgrade` your system.
-# Examples: `bookworm`, `trixie`.
-debian_release: "{{ ansible_facts['distribution_release'] }}"
-
-# APT repositories to manage with deb822_repository module.
-# Each item is written as a separate source under `/etc/apt/sources.list.d/`.
-# Set to [] to skip repository management.
-debian_apt_sources:
-  - name: debian
-    uris: http://{{ debian_apt_mirror }}/debian
-    suites:
-      - "{{ debian_release }}"
-      - "{{ debian_release }}-updates"
-      - "{{ debian_release }}-backports"
-  - name: debian-security
-    uris: http://{{ debian_apt_mirror }}/debian-security
-    suites: "{{ debian_release }}-security"
+debian_mirror: ""
 
 # Set to false to skip setup of unattended upgrades.
 debian_setup_upgrades: true
@@ -30,8 +10,12 @@ debian_setup_upgrades: true
 # Optional extra packages to install after APT is configured.
 debian_packages: []
 
+debian_disable_cloudinit: false
+
 # IP address to place on the managed host's primary /etc/hosts line.
 debian_host: "{{ ansible_host }}"
+
+debian_set_systemd_hostname: true
 
 # FQDN to set with systemd-hostnamed and write to /etc/hosts.
 # Set to "" to skip hostname management.
@@ -53,6 +37,14 @@ debian_dns_servers:
 # DNS search domain written to /etc/resolv.conf. Set to "" to omit the search line.
 # The default derives the parent domain from debian_hostname.
 debian_search_domain: "{{ debian_hostname.split('.').1 }}.{{ debian_hostname.split('.').2 }}"
+
+debian_interfaces_template: ""
+
+debian_apply_interfaces: false
+
+debian_ssh_disable_password_auth: true
+
+debian_ssh_listen_addresses: []
 
 # Locales to generate on the host.
 # Set to [] to skip locales management.

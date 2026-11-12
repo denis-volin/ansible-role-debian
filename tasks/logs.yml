@@ -1,5 +1,5 @@
 ---
-- name: Install killall command to reload journald.
+- name: Install killall command to reload journald
   ansible.builtin.apt:
     name: psmisc
     update_cache: true

@@ -8,7 +8,7 @@
         - apt
   tags:
     - apt
-    - sources
+    - mirrors
     - unattended_upgrades
 
 - name: Install optional packages
@@ -20,23 +20,48 @@
   tags:
     - packages
 
+
 - name: Gather the package facts
   ansible.builtin.package_facts:
     manager: apt
   tags:
     - always
 
-- name: Configure system
+- name: Disable cloud-init on boot
+  when:
+    - "'cloud-init' in ansible_facts.packages"
+    - debian_disable_cloudinit | bool
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/cloud/cloud-init.disabled
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - cloudinit
+
+- name: Configure networking
   ansible.builtin.include_tasks:
-    file: system.yml
+    file: network.yml
     apply:
       tags:
-        - system
+        - network
   tags:
-    - system
+    - network
     - hostname
     - dns
-    - locales
+    - interfaces
+    - ssh
+
+- name: Configure locales
+  when: debian_locales | length > 0
+  ansible.builtin.include_tasks:
+    file: locale.yml
+    apply:
+      tags:
+        - locale
+  tags:
+    - locale
 
 - name: Configure NTP and timezone
   ansible.builtin.include_tasks:

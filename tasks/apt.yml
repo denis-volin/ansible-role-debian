@@ -1,40 +1,20 @@
 ---
-- name: Setup package repositories
-  when: debian_apt_sources | length > 0
-  tags: sources
-  block:
-    - name: Install deb822 repository module dependency
-      ansible.builtin.apt:
-        name: python3-debian
-        update_cache: true
-        cache_valid_time: 3600
+- name: Replace Debian package mirrors
+  ansible.builtin.replace:
+    path: "{{ item }}"
+    regexp: 'https?://(?:deb|security)\.debian\.org/(debian(?:-security)?)'
+    replace: 'https://{{ debian_mirror }}/\1'
+  loop:
+    - /etc/apt/sources.list
+    - /etc/apt/sources.list.d/debian.sources
+    - /etc/apt/mirrors/debian.list
+    - /etc/apt/mirrors/debian-security.list
+  notify: Update apt cache
+  when: debian_mirror | length > 0
+  tags: mirrors
 
-    - name: Setup Debian repository for APT
-      ansible.builtin.deb822_repository:
-        name: "{{ item.name }}"
-        types:
-          - deb
-          - deb-src
-        uris: "{{ item.uris }}"
-        suites: "{{ item.suites }}"
-        components: main
-        signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
-      loop: "{{ debian_apt_sources }}"
-      loop_control:
-        label: "{{ item.name }}"
-      notify: Update apt cache
-
-    - name: Manage apt sources list
-      ansible.builtin.template:
-        src: sources.list.j2
-        dest: /etc/apt/sources.list
-        owner: root
-        group: root
-        mode: "0644"
-      notify: Update apt cache
-
-    - name: Force update apt cache if needed
-      ansible.builtin.meta: flush_handlers
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: Install unattended-upgrades package
   ansible.builtin.apt:
@@ -42,8 +22,7 @@
     update_cache: true
     cache_valid_time: 3600
   when: debian_setup_upgrades | bool
-  tags:
-    - unattended_upgrades
+  tags: unattended_upgrades
 
 - name: Setup unattended upgrades
   ansible.builtin.shell: |
@@ -54,5 +33,4 @@
     executable: /bin/bash
     creates: /etc/apt/apt.conf.d/20auto-upgrades
   when: debian_setup_upgrades | bool
-  tags:
-    - unattended_upgrades
+  tags: unattended_upgrades

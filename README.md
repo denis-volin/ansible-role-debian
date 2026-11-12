@@ -67,7 +67,7 @@ Most features can be disabled by setting their variable to an empty value:
   become: true
 
   roles:
-    - role: denis_volin.debian
+    - role: denis-volin.debian
       vars:
         debian_packages:
           - curl

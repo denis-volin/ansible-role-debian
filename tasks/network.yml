@@ -3,7 +3,9 @@
   ansible.builtin.hostname:
     use: systemd
     name: "{{ debian_hostname }}"
-  when: debian_hostname | length > 0
+  when:
+    - debian_set_systemd_hostname | bool
+    - debian_hostname | length > 0
   tags:
     - hostname
 
@@ -43,18 +45,26 @@
   tags:
     - dns
 
-- name: Install locales package
-  ansible.builtin.apt:
-    name: locales
-    update_cache: true
-    cache_valid_time: 3600
-  when: debian_locales | length > 0
+- name: Set up network interfaces file
+  ansible.builtin.template:
+    src: "{{ debian_interfaces_template }}"
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Apply interfaces
+  when: debian_interfaces_template | length > 0
   tags:
-    - locales
+    - interfaces
 
-- name: Generate locales
-  community.general.locale_gen:
-    name: "{{ debian_locales }}"
-  when: debian_locales | length > 0
+- name: Configure OpenSSH server
+  ansible.builtin.template:
+    src: sshd.conf.j2
+    dest: /etc/ssh/sshd_config.d/99-ansible.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sshd
+  when: debian_ssh_disable_password_auth | bool or debian_ssh_listen_addresses | length > 0
   tags:
-    - locales
+    - ssh
