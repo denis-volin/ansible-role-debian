@@ -1,14 +1,11 @@
 ---
 # defaults file for debian
 
-# FQDN of Debian mirror to use.
-debian_mirror: ""
-
-# Set to false to skip setup of unattended upgrades.
-debian_setup_upgrades: true
-
-# Optional extra packages to install after APT is configured.
-debian_packages: []
+debian_apt_manage_sources: false
+debian_apt_mirror: https://deb.debian.org/debian
+debian_apt_security_mirror: https://security.debian.org/debian-security
+debian_apt_autoupgrades: true
+debian_apt_packages: []
 
 debian_disable_cloudinit: false
 

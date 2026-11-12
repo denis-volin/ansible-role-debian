@@ -1,25 +1,11 @@
 ---
 # tasks file for debian
-- name: Configure APT
+- name: Include APT tasks
   ansible.builtin.include_tasks:
-    file: apt.yml
+    file: apt/main.yml
     apply:
-      tags:
-        - apt
-  tags:
-    - apt
-    - mirrors
-    - unattended_upgrades
-
-- name: Install optional packages
-  ansible.builtin.apt:
-    name: "{{ debian_packages }}"
-    update_cache: true
-    cache_valid_time: 3600
-  when: debian_packages | length > 0
-  tags:
-    - packages
-
+      tags: apt
+  tags: [apt, sources, autoupgrades, packages]
 
 - name: Gather the package facts
   ansible.builtin.package_facts:

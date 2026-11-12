@@ -1,0 +1,24 @@
+---
+- name: Manage APT sources
+  when: debian_apt_manage_sources | bool
+  ansible.builtin.include_tasks:
+    file: sources.yml
+    apply:
+      tags: sources
+  tags: sources
+
+- name: Set up unattended upgrades
+  when: debian_apt_autoupgrades | bool
+  ansible.builtin.include_tasks:
+    file: autoupgrades.yml
+    apply:
+      tags: autoupgrades
+  tags: autoupgrades
+
+- name: Install optional packages
+  when: debian_apt_packages | length > 0
+  ansible.builtin.apt:
+    name: "{{ debian_apt_packages }}"
+    update_cache: true
+    cache_valid_time: 3600
+  tags: packages

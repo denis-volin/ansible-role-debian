@@ -1,0 +1,21 @@
+---
+- name: Manage APT sources.list file
+  ansible.builtin.template:
+    src: sources.list.j2
+    dest: /etc/apt/sources.list
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Update apt cache
+
+- name: Manage APT debian.sources file
+  ansible.builtin.template:
+    src: debian.sources.j2
+    dest: /etc/apt/sources.list.d/debian.sources
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Update apt cache
+
+- name: Flush handlers for APT
+  ansible.builtin.meta: flush_handlers

@@ -1,0 +1,13 @@
+{{ ansible_managed | comment }}
+
+Types: deb
+URIs: {{ debian_apt_mirror }}
+Suites: {{ ansible_facts['distribution_release'] }} {{ ansible_facts['distribution_release'] }}-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+URIs: {{ debian_apt_security_mirror }}
+Suites: {{ ansible_facts['distribution_release'] }}-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
