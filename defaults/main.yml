@@ -9,21 +9,22 @@ debian_apt_packages: []
 
 debian_disable_cloudinit: false
 
-# IP address to place on the managed host's primary /etc/hosts line.
-# Proxmox VE nodes must override this with a reachable, non-loopback node IP.
-debian_host: 127.0.1.1
-
 # Controls setting the system hostname only; /etc/hosts management is independent.
-debian_set_systemd_hostname: true
+debian_hostname_manage: true
 
-# FQDN to set with systemd-hostnamed and write to /etc/hosts.
-# Set to "" to skip hostname management.
+# Hostname shared by system hostname and /etc/hosts management.
 debian_hostname: "{{ inventory_hostname }}"
 
-# Short hostname alias to write next to debian_hostname in /etc/hosts.
-# Derived from debian_hostname, not the inventory alias. Explicit overrides win.
-# Set to "" to skip /etc/hosts management.
+# Short alias derived from debian_hostname. Explicit overrides win.
+# An empty alias writes only debian_hostname in /etc/hosts.
 debian_hostname_short: "{{ debian_hostname.split('.', 1)[0] }}"
+
+# Controls management of the entire /etc/hosts file.
+debian_hosts_manage: true
+
+# IP address for the primary /etc/hosts entry.
+# Proxmox VE nodes must override this with a reachable, non-loopback node IP.
+debian_hosts_address: 127.0.1.1
 
 # Additional raw /etc/hosts entries. Each list item is rendered as its own line.
 debian_hosts_extra: []

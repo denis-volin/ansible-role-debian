@@ -6,7 +6,8 @@
   vars:
     debian_packages:
       - mc
-    debian_hostname: ""
+    debian_hostname_manage: false
+    debian_hosts_manage: false
     debian_search_domain: ""
     debian_dns_servers: []
     debian_timezone: Etc/UTC

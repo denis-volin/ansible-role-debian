@@ -1,11 +1,30 @@
 ---
+- name: Validate shared hostname when either management feature is enabled
+  ansible.builtin.assert:
+    that:
+      - debian_hostname is string
+      - debian_hostname | trim | length > 0
+    fail_msg: debian_hostname must be a nonempty string when hostname or hosts management is enabled.
+  when: debian_hostname_manage | bool or debian_hosts_manage | bool
+  tags:
+    - hostname
+
+- name: Validate hosts file inputs
+  ansible.builtin.assert:
+    that:
+      - debian_hosts_address is string
+      - debian_hosts_address | trim | length > 0
+      - debian_hostname_short is string
+    fail_msg: debian_hosts_address must be a nonempty string and debian_hostname_short must be a string (empty is allowed).
+  when: debian_hosts_manage | bool
+  tags:
+    - hostname
+
 - name: Set hostname with systemd
   ansible.builtin.hostname:
     use: systemd
     name: "{{ debian_hostname }}"
-  when:
-    - debian_set_systemd_hostname | bool
-    - debian_hostname | length > 0
+  when: debian_hostname_manage | bool
   tags:
     - hostname
 
@@ -16,10 +35,7 @@
     owner: root
     group: root
     mode: "0644"
-  when:
-    - debian_host | length > 0
-    - debian_hostname | length > 0
-    - debian_hostname_short | length > 0
+  when: debian_hosts_manage | bool
   tags:
     - hostname
 
