@@ -1,0 +1,51 @@
+---
+# Run: ansible-playbook -i localhost, -c local tests/search-domain.yml
+- name: Verify DNS search-domain derivation without changing the host
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../defaults/main.yml
+  vars:
+    ansible_managed: Ansible managed
+    derivation_cases:
+      - hostname: node.example.com
+        expected: example.com
+      - hostname: node.dc.example.com
+        expected: dc.example.com
+      - hostname: node.example
+        expected: example
+      - hostname: node
+        expected: ""
+      - hostname: ""
+        expected: ""
+      - hostname: node.example.com.
+        expected: example.com
+    override_cases:
+      - hostname: node.example.com
+        override: custom.internal
+        expected: custom.internal
+      - hostname: node.example.com
+        override: ""
+        expected: ""
+      - hostname: ""
+        override: custom.internal
+        expected: custom.internal
+  tasks:
+    - name: Check derived search domains
+      ansible.builtin.include_tasks: search-domain-case.yml
+      loop: "{{ derivation_cases }}"
+      loop_control:
+        loop_var: search_case
+        label: "{{ search_case.hostname }}"
+      vars:
+        debian_hostname: "{{ search_case.hostname }}"
+
+    - name: Check explicit search-domain overrides
+      ansible.builtin.include_tasks: search-domain-case.yml
+      loop: "{{ override_cases }}"
+      loop_control:
+        loop_var: search_case
+        label: "{{ search_case.hostname }} => {{ search_case.override }}"
+      vars:
+        debian_hostname: "{{ search_case.hostname }}"
+        debian_search_domain: "{{ search_case.override }}"

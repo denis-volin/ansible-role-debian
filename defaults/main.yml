@@ -32,8 +32,9 @@ debian_dns_servers:
   - 1.0.0.1
 
 # DNS search domain written to /etc/resolv.conf. Set to "" to omit the search line.
-# The default derives the parent domain from debian_hostname.
-debian_search_domain: "{{ debian_hostname.split('.').1 }}.{{ debian_hostname.split('.').2 }}"
+# The default uses everything after the first dot, ignoring a trailing DNS root dot.
+# Empty and single-label hostnames produce no search domain. Explicit overrides win.
+debian_search_domain: "{{ debian_hostname.rstrip('.').split('.', 1)[1] | default('') }}"
 
 debian_interfaces_template: ""
 

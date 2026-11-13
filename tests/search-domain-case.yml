@@ -1,0 +1,12 @@
+---
+- name: Check domain value and rendered resolver configuration
+  ansible.builtin.assert:
+    that:
+      - debian_search_domain == search_case.expected
+      - >-
+        (rendered_resolver.splitlines() | select('match', '^search ') | list)
+        == (['search ' ~ search_case.expected] if search_case.expected | length > 0 else [])
+      - "('nameserver ' ~ debian_dns_servers[0]) in rendered_resolver.splitlines()"
+    fail_msg: "Search-domain regression for hostname {{ search_case.hostname }}"
+  vars:
+    rendered_resolver: "{{ lookup('ansible.builtin.template', '../templates/resolv.conf.j2') }}"
