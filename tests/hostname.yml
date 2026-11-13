@@ -1,0 +1,101 @@
+---
+# Run: ansible-playbook -i localhost, -c local tests/hostname.yml
+- name: Verify hostname defaults and hosts rendering without changing the host
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../defaults/main.yml
+  vars:
+    ansible_managed: Ansible managed
+    network_tasks: "{{ lookup('ansible.builtin.file', '../tasks/network.yml') | from_yaml }}"
+    hostname_cases:
+      - name: Inventory hostname remains the default
+        expected_short: localhost
+        expected_line: 127.0.1.1 localhost
+      - name: FQDN independent of inventory alias
+        hostname: app.example.com
+        expected_short: app
+        expected_line: 127.0.1.1 app.example.com app
+      - name: Nested domain
+        hostname: app.dc.example.com
+        expected_short: app
+        expected_line: 127.0.1.1 app.dc.example.com app
+      - name: Single-label hostname without duplicate alias
+        hostname: app
+        expected_short: app
+        expected_line: 127.0.1.1 app
+      - name: Explicit short-name override
+        hostname: app.example.com
+        short: custom
+        expected_short: custom
+        expected_line: 127.0.1.1 app.example.com custom
+      - name: Explicit address for a Proxmox node with hostname setting disabled
+        hostname: pve1.example.com
+        address: 192.0.2.20
+        set_hostname: false
+        expected_short: pve1
+        expected_line: 192.0.2.20 pve1.example.com pve1
+      - name: Empty hostname skips hostname and hosts management
+        hostname: ""
+        expected_short: ""
+        expected_manage_hosts: false
+        expected_set_hostname: false
+      - name: Empty address skips hosts but not hostname management
+        hostname: app.example.com
+        address: ""
+        expected_short: app
+        expected_manage_hosts: false
+      - name: Empty explicit alias skips hosts but not hostname management
+        hostname: app.example.com
+        short: ""
+        expected_short: ""
+        expected_manage_hosts: false
+      - name: Explicit alias equal to hostname is not duplicated
+        hostname: app.example.com
+        short: app.example.com
+        expected_short: app.example.com
+        expected_line: 127.0.1.1 app.example.com
+  tasks:
+    - name: Verify production task guards match the conditions exercised below
+      ansible.builtin.assert:
+        that:
+          - network_tasks[0]['ansible.builtin.hostname']['use'] == 'systemd'
+          - network_tasks[0]['when'] == ['debian_set_systemd_hostname | bool', 'debian_hostname | length > 0']
+          - >-
+            network_tasks[1]['when'] == ['debian_host | length > 0',
+            'debian_hostname | length > 0', 'debian_hostname_short | length > 0']
+
+    - name: Verify the hostname defaults to the inventory name
+      ansible.builtin.assert:
+        that:
+          - debian_hostname == inventory_hostname
+
+    - name: Check default address and derived alias
+      ansible.builtin.include_tasks: hostname-case.yml
+      loop: "{{ hostname_cases | rejectattr('short', 'defined') | rejectattr('address', 'defined') | list }}"
+      loop_control:
+        loop_var: hostname_case
+        label: "{{ hostname_case.name }}"
+      vars:
+        debian_hostname: "{{ hostname_case.hostname | default(inventory_hostname) }}"
+
+    - name: Check explicit alias overrides
+      ansible.builtin.include_tasks: hostname-case.yml
+      loop: "{{ hostname_cases | selectattr('short', 'defined') | list }}"
+      loop_control:
+        loop_var: hostname_case
+        label: "{{ hostname_case.name }}"
+      vars:
+        debian_hostname: "{{ hostname_case.hostname }}"
+        debian_hostname_short: "{{ hostname_case.short }}"
+
+    - name: Check explicit address overrides and hostname switch
+      ansible.builtin.include_tasks: hostname-case.yml
+      loop: "{{ hostname_cases | selectattr('address', 'defined') | list }}"
+      loop_control:
+        loop_var: hostname_case
+        label: "{{ hostname_case.name }}"
+      vars:
+        debian_hostname: "{{ hostname_case.hostname }}"
+        debian_host: "{{ hostname_case.address }}"
+        debian_set_systemd_hostname: "{{ hostname_case.set_hostname | default(true) }}"

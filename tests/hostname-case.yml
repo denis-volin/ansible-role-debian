@@ -1,0 +1,24 @@
+---
+- name: Verify hostname derivation and management conditions
+  ansible.builtin.assert:
+    that:
+      - debian_hostname_short == hostname_case.expected_short
+      - >-
+        (debian_host | length > 0 and debian_hostname | length > 0 and debian_hostname_short | length > 0)
+        == (hostname_case.expected_manage_hosts | default(true))
+      - >-
+        (debian_set_systemd_hostname | bool and debian_hostname | length > 0)
+        == (hostname_case.expected_set_hostname | default(hostname_case.set_hostname | default(true)))
+
+- name: Verify rendered hosts entry and preservation of extra entries
+  ansible.builtin.assert:
+    that:
+      - hostname_case.expected_line in rendered_hosts.splitlines()
+      - "'127.0.0.1 localhost.localdomain localhost' in rendered_hosts.splitlines()"
+      - "'::1     ip6-localhost ip6-loopback' in rendered_hosts.splitlines()"
+      - "'192.0.2.99 extra.example.com extra' in rendered_hosts.splitlines()"
+  when: hostname_case.expected_manage_hosts | default(true)
+  vars:
+    debian_hosts_extra:
+      - 192.0.2.99 extra.example.com extra
+    rendered_hosts: "{{ lookup('ansible.builtin.template', '../templates/hosts.j2') }}"
