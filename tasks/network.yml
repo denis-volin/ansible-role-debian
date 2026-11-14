@@ -62,18 +62,6 @@
   tags:
     - dns
 
-- name: Set up network interfaces file
-  ansible.builtin.template:
-    src: "{{ debian_interfaces_template }}"
-    dest: /etc/network/interfaces
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Apply interfaces
-  when: debian_interfaces_template | length > 0
-  tags:
-    - interfaces
-
 - name: Configure OpenSSH server
   ansible.builtin.template:
     src: sshd.conf.j2

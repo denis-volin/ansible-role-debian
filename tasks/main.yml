@@ -36,7 +36,6 @@
     - network
     - hostname
     - dns
-    - interfaces
     - ssh
 
 - name: Configure locales

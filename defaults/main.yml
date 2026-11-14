@@ -41,10 +41,6 @@ debian_dns_servers:
 # Empty and single-label hostnames produce no search domain. Explicit overrides win.
 debian_search_domain: "{{ debian_hostname.rstrip('.').split('.', 1)[1] | default('') }}"
 
-debian_interfaces_template: ""
-
-debian_apply_interfaces: false
-
 debian_ssh_disable_password_auth: true
 
 debian_ssh_listen_addresses: []
