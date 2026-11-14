@@ -39,7 +39,19 @@
   tags:
     - hostname
 
-- name: Stop and disable systemd-resolvd
+- name: Set up /etc/resolv.conf file
+  ansible.builtin.template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+    follow: false
+    owner: root
+    group: root
+    mode: "0644"
+  when: debian_dns_servers | length > 0
+  tags:
+    - dns
+
+- name: Stop and disable systemd-resolved
   ansible.builtin.systemd:
     name: systemd-resolved.service
     state: stopped
@@ -47,17 +59,6 @@
   when:
     - "'systemd-resolved' in ansible_facts.packages"
     - debian_dns_servers | length > 0
-  tags:
-    - dns
-
-- name: Set up /etc/resolv.conf file
-  ansible.builtin.template:
-    src: resolv.conf.j2
-    dest: /etc/resolv.conf
-    owner: root
-    group: root
-    mode: "0644"
-  when: debian_dns_servers | length > 0
   tags:
     - dns
 
