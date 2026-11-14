@@ -4,9 +4,14 @@
   ansible.builtin.apt:
     update_cache: true
 
-- name: Reload sshd
+- name: Validate SSH configuration
+  ansible.builtin.command:
+    cmd: /usr/sbin/sshd -t
+  changed_when: false
+
+- name: Reload SSH
   ansible.builtin.systemd:
-    name: sshd
+    name: ssh.service
     state: reloaded
 
 - name: Restart systemd-timesyncd

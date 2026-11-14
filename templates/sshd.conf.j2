@@ -1,8 +1,2 @@
-{% if debian_ssh_disable_password_auth | bool %}
-PasswordAuthentication no
-{% endif %}
-{% if debian_ssh_listen_addresses | length > 0 %}
-{% for address in debian_ssh_listen_addresses %}
-ListenAddress {{ address }}
-{% endfor %}
-{% endif %}
+PasswordAuthentication {{ 'yes' if debian_ssh_password_auth | bool else 'no' }}
+KbdInteractiveAuthentication {{ 'yes' if debian_ssh_password_auth | bool else 'no' }}

@@ -41,9 +41,11 @@ debian_dns_servers:
 # Empty and single-label hostnames produce no search domain. Explicit overrides win.
 debian_search_domain: "{{ debian_hostname.rstrip('.').split('.', 1)[1] | default('') }}"
 
-debian_ssh_disable_password_auth: true
+# Set to false to remove the authentication file supplied by this role.
+debian_ssh_manage: true
 
-debian_ssh_listen_addresses: []
+# Controls both password and keyboard-interactive authentication.
+debian_ssh_password_auth: false
 
 # Locales to generate on the host.
 # Set to [] to skip locales management.
