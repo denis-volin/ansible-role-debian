@@ -52,14 +52,6 @@ debian_ssh_password_auth: false
 debian_locales:
   - en_US.UTF-8
 
-# NTP servers configured for systemd-timesyncd.
-# Set to [] to skip installing and configuring systemd-timesyncd.
-debian_ntp_servers:
-  - 0.pool.ntp.org
-  - 1.pool.ntp.org
-  - 2.pool.ntp.org
-  - 3.pool.ntp.org
-
 # Timezone in `tz database` format to set.
 # Examples: "Etc/UTC", "Europe/Warsaw".
 # Set to "" to skip timezone management.

@@ -48,7 +48,7 @@
   tags:
     - locale
 
-- name: Configure NTP and timezone
+- name: Configure timezone
   ansible.builtin.include_tasks:
     file: time.yml
     apply:
@@ -56,7 +56,6 @@
         - time
   tags:
     - time
-    - ntp
     - timezone
 
 - name: Configure journald persistent logs
