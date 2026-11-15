@@ -14,10 +14,12 @@
     name: ssh.service
     state: reloaded
 
-- name: Reload journald
-  ansible.builtin.shell: |
-    set -e
+- name: Restart journald
+  ansible.builtin.systemd:
+    name: systemd-journald.service
+    state: restarted
 
-    killall -USR1 systemd-journald
-    journalctl --flush
+- name: Flush journald
+  ansible.builtin.command:
+    cmd: journalctl --flush
   changed_when: true

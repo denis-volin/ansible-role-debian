@@ -1,10 +1,4 @@
 ---
-- name: Install killall command to reload journald
-  ansible.builtin.apt:
-    name: psmisc
-    update_cache: true
-    cache_valid_time: 3600
-
 - name: Create directory for journald drop-ins
   ansible.builtin.file:
     path: /etc/systemd/journald.conf.d
@@ -20,4 +14,6 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Reload journald
+  notify:
+    - Restart journald
+    - Flush journald
