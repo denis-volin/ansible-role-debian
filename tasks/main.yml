@@ -3,7 +3,7 @@
 - name: Gather the package facts
   ansible.builtin.package_facts:
     manager: apt
-  tags: [dns, cloudinit]
+  tags: [network, dns, misc, cloudinit]
 
 - name: Include APT tasks
   ansible.builtin.include_tasks:
