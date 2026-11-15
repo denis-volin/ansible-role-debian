@@ -1,6 +1,5 @@
 ---
 - name: Manage hostname
-  when: debian_hosts_manage | bool
   ansible.builtin.include_tasks:
     file: hostname.yml
     apply:
