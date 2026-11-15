@@ -1,5 +1,10 @@
 ---
 # tasks file for debian
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: apt
+  tags: [dns, cloudinit]
+
 - name: Include APT tasks
   ansible.builtin.include_tasks:
     file: apt/main.yml
@@ -7,63 +12,16 @@
       tags: apt
   tags: [apt, sources, autoupgrades, packages]
 
-- name: Gather the package facts
-  ansible.builtin.package_facts:
-    manager: apt
-  tags:
-    - always
-
-- name: Disable cloud-init on boot
-  when:
-    - "'cloud-init' in ansible_facts.packages"
-    - debian_disable_cloudinit | bool
-  ansible.builtin.copy:
-    content: ""
-    dest: /etc/cloud/cloud-init.disabled
-    owner: root
-    group: root
-    mode: "0644"
-  tags:
-    - cloudinit
-
-- name: Configure networking
+- name: Include network tasks
   ansible.builtin.include_tasks:
-    file: network.yml
+    file: network/main.yml
     apply:
-      tags:
-        - network
-  tags:
-    - network
-    - hostname
-    - dns
-    - ssh
+      tags: network
+  tags: [network, hostname, dns, ssh]
 
-- name: Configure locales
-  when: debian_locales | length > 0
+- name: Include miscellaneous tasks
   ansible.builtin.include_tasks:
-    file: locale.yml
+    file: misc/main.yml
     apply:
-      tags:
-        - locale
-  tags:
-    - locale
-
-- name: Configure timezone
-  ansible.builtin.include_tasks:
-    file: time.yml
-    apply:
-      tags:
-        - time
-  tags:
-    - time
-    - timezone
-
-- name: Configure journald persistent logs
-  when: debian_setup_journald | bool
-  ansible.builtin.include_tasks:
-    file: logs.yml
-    apply:
-      tags:
-        - logs
-  tags:
-    - logs
+      tags: misc
+  tags: [misc, cloudinit, locale, timezone, logs]

@@ -1,0 +1,35 @@
+---
+- name: Disable cloud-init on boot
+  when:
+    - "'cloud-init' in ansible_facts.packages"
+    - debian_disable_cloudinit | bool
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/cloud/cloud-init.disabled
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - cloudinit
+
+- name: Configure locales
+  when: debian_locales | length > 0
+  ansible.builtin.include_tasks:
+    file: locale.yml
+    apply:
+      tags: locale
+  tags: locale
+
+- name: Set timezone
+  when: debian_timezone | length > 0
+  community.general.timezone:
+    name: "{{ debian_timezone }}"
+  tags: timezone
+
+- name: Configure journald persistent logs
+  when: debian_setup_journald | bool
+  ansible.builtin.include_tasks:
+    file: logs.yml
+    apply:
+      tags: logs
+  tags: logs

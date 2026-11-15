@@ -1,0 +1,23 @@
+---
+- name: Manage hostname
+  when: debian_hosts_manage | bool
+  ansible.builtin.include_tasks:
+    file: hostname.yml
+    apply:
+      tags: hostname
+  tags: hostname
+
+- name: Manage /etc/resolv.conf
+  when: debian_dns_servers | length > 0
+  ansible.builtin.include_tasks:
+    file: dns.yml
+    apply:
+      tags: dns
+  tags: dns
+
+- name: Manage OpenSSH server
+  ansible.builtin.include_tasks:
+    file: ssh.yml
+    apply:
+      tags: ssh
+  tags: ssh

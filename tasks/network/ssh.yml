@@ -1,0 +1,21 @@
+---
+- name: Configure OpenSSH server
+  ansible.builtin.template:
+    src: sshd.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-ansible.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Validate SSH configuration
+    - Reload SSH
+  when: debian_ssh_manage | bool
+
+- name: Remove managed OpenSSH configuration
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d/10-ansible.conf
+    state: absent
+  notify:
+    - Validate SSH configuration
+    - Reload SSH
+  when: not (debian_ssh_manage | bool)

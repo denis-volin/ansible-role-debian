@@ -9,7 +9,3 @@ Subsequent runs apply configuration changes.
 
 The role manages system-wide settings and services, including APT, the hostname, DNS, and time synchronization.
 Its goal is to provide a consistent baseline across hosting environments — for example, by using the same time synchronization service regardless of the provider.
-
-## Status
-
-This role is under active development. For now, do not update README.md or add assertion tasks.
